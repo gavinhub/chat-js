@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>MiniChat | FSE</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/chat.css">
+    <script src="/js/jquery-1.11.js"></script>
+</head>
+<body>
+    <header class="header">
+        <span class="visible-xs-block glyphicon glyphicon-th-list licon"></span>
+        <p>CHATROOM</p>
+        <span class="visible-xs-block glyphicon glyphicon-user ricon"></span>
+    </header>
+    <div class="container-fluid">
+        <div class="row main">
+            <div class="col-sm-3 col-xs-10 chat-group xs-hide">
+                <ul id="groups"></ul>
+            </div>
+            <div class="col-sm-6 col-xs-12 chat-main">
+                <ul class="messages"></ul>
+                <form id='form' action="">
+                  <div class="inputL">
+                    <label for="m" id="username"><%= username %></label>
+                    <div>
+                      <input data-group="man" id="m" autocomplete="off" />      
+                    </div>
+                  </div>
+                  <button>Send</button>
+                </form>
+            </div>
+            <div class="col-sm-3 col-xs-10 chat-peerlist xs-hide">
+                right
+            </div>
+        </div>
+    </div>
+<script src="/js/socket.io.js"></script>
+<script>
+$(function () {
+    function resize () {
+        // content height
+        var main_height = $(window).height() - $(".header").height();
+        $(".main>div").height(main_height);
+        $("#messages").height(main_height-$("#form").height())
+
+        // side bars - when screen is small
+        var win_width = $(window).width();
+        if (win_width <= 767) {
+            $('.chat-group').css('left', -30-$(".chat-group").width());
+            $('.chat-peerlist').css('right', -30-$(".chat-peerlist").width());
+        } else {
+            $(".chat-group").css("left", 0);
+            $(".chat-peerlist").css("right", 0);
+        }
+    }
+    $(window).resize(resize);
+    resize();
+
+    /* toggle side bar */
+    $(".licon").click(function () {
+        $(".chat-group").toggleClass("show");
+    })
+    $(".ricon").click(function () {
+        $(".chat-peerlist").toggleClass("show");
+    })
+
+
+    /*
+     * Socket packge - manage socket io.
+     */
+    var socket = io();
+    $('#form').submit(function(){
+        var msg = {
+          'username': $('#username').text(),
+          'text': $('#m').val(),
+          'color': '#2c9',
+          'room': $('#m').attr('data-group')
+        }
+        socket.emit('chat message', msg);
+        $('#m').val('');
+        return false;
+    });
+
+    socket.on('chat message', function (msg){
+        var mstr = "<span style='color:"+msg.color+"'>["+msg.username+"] "+msg.text+"</span>"
+        $('#cwin-'+msg.room).append($('<li>').html(mstr)).stop(true,true).animate({scrollTop: $('#cwin-'+msg.room)[0].scrollHeight}, 100);
+    });
+
+    socket.on('success', function (msg) {
+        var action = msg.act;
+        if (action == 'JOIN') {
+            var gname = "#glist-" + msg.room;
+            $("#groups").append("<li><a href='javascript:void(0)' class='gtag' id='glist-"+msg.room+"'>"+msg.room+"</a></li>")
+            $(".chat-main").append("<ul class='messages' id='cwin-"+msg.room+"'></ul>")
+            $(gname).click(function(){
+                $(".gtag").removeClass('curr');
+                $(this).addClass('curr');
+                $('#m').attr('data-group', msg.room);
+                $(".messages").removeClass('curr');
+                $("#cwin-"+msg.room).addClass('curr');
+            })
+        }
+    });
+
+    socket.on('error', function (err) {
+        alert(err);
+    })
+
+    /*
+     * initialize
+     */
+    $.getJSON('/api/grplist', function (data) {
+        for (var i = 0; i < data.list.length; i ++) {
+            socket.emit('grp command', {
+                command: 'join',
+                room: data.list[i]
+            })
+        }
+    })
+})
+</script>
+</body>
+</html>
