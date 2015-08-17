@@ -18,6 +18,10 @@
     <div class="container-fluid">
         <div class="row main">
             <div class="col-sm-3 col-xs-10 chat-group xs-hide">
+                <form action="" id="joingrp-form">
+                    <input type="text" id="join-grp" autocomplete="off" />
+                    <button>Join</button>
+                </form>
                 <ul id="groups"></ul>
             </div>
             <div class="col-sm-6 col-xs-12 chat-main">
@@ -44,7 +48,7 @@ $(function () {
         // content height
         var main_height = $(window).height() - $(".header").height();
         $(".main>div").height(main_height);
-        $("#messages").height(main_height-$("#form").height())
+        $(".messages").height(main_height-$("#form").height())
 
         // side bars - when screen is small
         var win_width = $(window).width();
@@ -61,10 +65,10 @@ $(function () {
 
     /* toggle side bar */
     $(".licon").click(function () {
-        $(".chat-group").toggleClass("show");
+        $(".chat-group").toggleClass('show')
     })
     $(".ricon").click(function () {
-        $(".chat-peerlist").toggleClass("show");
+        $(".chat-peerlist").toggleClass('show')
     })
 
 
@@ -84,8 +88,19 @@ $(function () {
         return false;
     });
 
+    $("#joingrp-form").submit(function(){
+        var msg = {
+            'username': $("#username").text(),
+            'command': 'join',
+            'room': $("#join-grp").val()
+        }
+        socket.emit('grp command', msg);
+        $("#join-grp").val("");
+        return false;
+    });
+
     socket.on('chat message', function (msg){
-        var mstr = "<span style='color:"+msg.color+"'>["+msg.username+"] "+msg.text+"</span>"
+        var mstr = "<span style='color:"+msg.color+"' data-talkid='"+msg.talkid+"'>["+msg.username+"] "+msg.text+"</span>"
         $('#cwin-'+msg.room).append($('<li>').html(mstr)).stop(true,true).animate({scrollTop: $('#cwin-'+msg.room)[0].scrollHeight}, 100);
     });
 
@@ -94,14 +109,30 @@ $(function () {
         if (action == 'JOIN') {
             var gname = "#glist-" + msg.room;
             $("#groups").append("<li><a href='javascript:void(0)' class='gtag' id='glist-"+msg.room+"'>"+msg.room+"</a></li>")
-            $(".chat-main").append("<ul class='messages' id='cwin-"+msg.room+"'></ul>")
+            $(".chat-main").append("<ul class='messages' data-load='none' id='cwin-"+msg.room+"'></ul>")
             $(gname).click(function(){
                 $(".gtag").removeClass('curr');
                 $(this).addClass('curr');
                 $('#m').attr('data-group', msg.room);
                 $(".messages").removeClass('curr');
                 $("#cwin-"+msg.room).addClass('curr');
+                if ($("#cwin-"+msg.room).attr('data-load') == 'none') {
+                    $.getJSON("/api/talk", {
+                        grp: msg.room,
+                        cursor: 0,
+                        number: 30
+                    }, function (data) {
+                        var talkwin = $("#cwin-"+msg.room);
+                        for (var i = 0; i < data.length; i ++) {
+                            var mstr = "<span style='color:"+data[i].color+"' data-talkid='"+data[i].id+"'>["+data[i].user+"] "+data[i].text+"</span>"
+                            $(talkwin).prepend($("<li>").html(mstr));   
+                        }
+                        $(talkwin).attr('data-load', 'loaded')
+                        $(talkwin).scrollTop($(talkwin)[0].scrollHeight)
+                    })
+                }
             })
+            resize();
         }
     });
 
@@ -112,9 +143,10 @@ $(function () {
     /*
      * initialize
      */
-    $.getJSON('/api/grplist', function (data) {
+    $.getJSON('/api/grplist', {user:$("#username").text()}, function (data) {
         for (var i = 0; i < data.list.length; i ++) {
             socket.emit('grp command', {
+                username: $("#username").text(),
                 command: 'join',
                 room: data.list[i]
             })

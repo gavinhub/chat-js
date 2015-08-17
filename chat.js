@@ -6,10 +6,18 @@ var Chatroom = {
 		// 
 		io.on('connection', function (socket) {
 			console.log("Connect");
-			var myname = "";
+			var dbh = require('./dbhandler')();
 
 			socket.on('chat message', function (msg) {
-				io.to(msg.room).emit('chat message', msg);
+				msg.time = Date.parse(new Date()) / 1000;
+				dbh.add_talk(msg, function (err, lastid) {
+					if (err)
+						socket.emit("error", "database error");
+					else {
+						msg.talkid = lastid;
+						io.to(msg.room).emit('chat message', msg);					
+					}
+				})
 			});
 
 			socket.on('grp command', function (msg) {
@@ -21,6 +29,7 @@ var Chatroom = {
 				}
 				switch (cmd) {
 					case 'join': 
+					dbh.user_join_grp(msg.username, msg.room)
 					socket.join(msg.room);
 					sucmsg.act = "JOIN";
 					socket.emit('success', sucmsg);
@@ -29,12 +38,6 @@ var Chatroom = {
 					case 'leave':
 					socket.leave(msg.room);
 					sucmsg.act = "LEAVE";
-					socket.emit('success', sucmsg);
-					break;
-
-					case 'create':
-					socket.join(msg.room) 
-					sucmsg.act = "CREATE";
 					socket.emit('success', sucmsg);
 					break;
 
@@ -48,6 +51,7 @@ var Chatroom = {
 				var byemsg = {
 
 				}
+				dbh.close();
 				socket.broadcast.emit('bye message', byemsg);
 			})
 		})

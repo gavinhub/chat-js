@@ -6,7 +6,7 @@ db.serialize(function() {
     db.exec("DROP TABLE IF EXISTS membership;DROP TABLE IF EXISTS talk;")
 
 
-    db.exec("CREATE TABLE membership(user varchar(20), grp varchar(20));");
+    db.exec("CREATE TABLE membership(user varchar(20), grp varchar(20), PRIMARY KEY (user, grp));");
     db.exec("CREATE TABLE talk(id integer primary key AutoIncrement, user varchar(20), color varchar(8), text TEXT, grp varchar(20), time integer);");
 
 });
