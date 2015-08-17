@@ -75,6 +75,21 @@ var DBHandler = function () {
         })
     }
 
+    this.get_peer = function (grp, callback) {
+        var query = "SELECT `user` FROM `membership` WHERE `grp` = ?";
+        this.db.all(query, grp, function (err, rows) {
+            var ans = Array()
+            if (err)
+                console.Error("Get peer error: ", err)
+            else {
+                for (var i = 0; i < rows.length; i ++) {
+                    ans.push(rows[i].user)
+                }
+            }
+            callback(ans)
+        })
+    }
+
     this.close = function () {
         this.db.close(function (err) {
             if (err)

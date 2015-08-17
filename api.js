@@ -9,8 +9,11 @@ api.get('/grplist', function (req, res) {
     })
 })
 
-api.get('/peerlist', function (req, res) {
-    res.json({list:['a','b','c']})
+api.get('/members', function (req, res) {
+    var grp = req.query.grp;
+    dbh.get_peer(grp, function(ans) {
+        res.json(ans)
+    })
 })
 
 api.get('/talk', function (req, res) {

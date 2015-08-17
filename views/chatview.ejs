@@ -37,7 +37,6 @@
                 </form>
             </div>
             <div class="col-sm-3 col-xs-10 chat-peerlist xs-hide">
-                right
             </div>
         </div>
     </div>
@@ -92,7 +91,8 @@ $(function () {
         var msg = {
             'username': $("#username").text(),
             'command': 'join',
-            'room': $("#join-grp").val()
+            'room': $("#join-grp").val(),
+            'token': 'nomal'
         }
         socket.emit('grp command', msg);
         $("#join-grp").val("");
@@ -108,14 +108,26 @@ $(function () {
         var action = msg.act;
         if (action == 'JOIN') {
             var gname = "#glist-" + msg.room;
-            $("#groups").append("<li><a href='javascript:void(0)' class='gtag' id='glist-"+msg.room+"'>"+msg.room+"</a></li>")
+            $("#groups").append("<li><a href='javascript:void(0)' class='gtag' id='glist-"+msg.room+"'>"+msg.room+"</a><a id='gleave-"+msg.room+"' href='javascript:void(0)'>Leave</a></li>")
+            $("#gleave-"+msg.room).click(function(){
+                var leavemessage = {
+                    'username': $("#username").text(),
+                    'command': 'leave',
+                    'room': msg.room
+                }
+                socket.emit('grp command', leavemessage);
+            })
+
             $(".chat-main").append("<ul class='messages' data-load='none' id='cwin-"+msg.room+"'></ul>")
+            $(".chat-peerlist").append("<ul class='members' data-load='none' id='pwin-"+msg.room+"'></ul>")
             $(gname).click(function(){
                 $(".gtag").removeClass('curr');
                 $(this).addClass('curr');
                 $('#m').attr('data-group', msg.room);
                 $(".messages").removeClass('curr');
                 $("#cwin-"+msg.room).addClass('curr');
+                $(".members").removeClass('curr');
+                $("#pwin-"+msg.room).addClass('curr');
                 if ($("#cwin-"+msg.room).attr('data-load') == 'none') {
                     $.getJSON("/api/talk", {
                         grp: msg.room,
@@ -131,10 +143,34 @@ $(function () {
                         $(talkwin).scrollTop($(talkwin)[0].scrollHeight)
                     })
                 }
+                if ($("#pwin-"+msg.room).attr('data-load') == 'none') {
+                    $.getJSON("/api/members", {
+                        grp: msg.room
+                    }, function (data) {
+                        for (var i = 0; i < data.length; i ++) {
+                            $("#pwin-"+msg.room).append("<li id='mem-"+msg.room+"-"+data[i]+"'>"+data[i]+"</li>")
+                        }
+                        $("#pwin-"+msg.room).attr('data-load', 'loaded')
+                    })
+                }
             })
             resize();
+        } else if (action == 'LEAVE') {
+            $("#glist-"+msg.room).parent("#groups li").remove();
+            $("#cwin-"+msg.room).remove();
+            $("#pwin-"+msg.room).remove();
         }
     });
+
+    socket.on('user info', function (msg) {
+        if (msg.act == 'LEAVE') {
+            $("#cwin-"+msg.room).append($("<li>").html("User '" + msg.user + "' leaves room"))
+            $("#mem-"+msg.room+"-"+msg.user).remove();
+        } else if (msg.act == "JOIN") {
+            $("#cwin-"+msg.room).append($("<li>").html("User '" + msg.user + "' comes here"))
+            $("#pwin-"+msg.room).append($("<li id='mem-"+msg.room+"-"+msg.user+"'>").html(msg.user))
+        }
+    })
 
     socket.on('error', function (err) {
         alert(err);
@@ -148,7 +184,8 @@ $(function () {
             socket.emit('grp command', {
                 username: $("#username").text(),
                 command: 'join',
-                room: data.list[i]
+                room: data.list[i],
+                token: 'init'
             })
         }
     })

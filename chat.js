@@ -33,12 +33,15 @@ var Chatroom = {
 					socket.join(msg.room);
 					sucmsg.act = "JOIN";
 					socket.emit('success', sucmsg);
+					if (msg.token != 'init')
+						io.to(msg.room).emit('user info', {user:msg.username, act:'JOIN', room:msg.room})
 					break;
 
 					case 'leave':
 					socket.leave(msg.room);
 					sucmsg.act = "LEAVE";
 					socket.emit('success', sucmsg);
+					io.to(msg.room).emit('user info', {user:msg.username, act:'LEAVE', room:msg.room})
 					break;
 
 					default:

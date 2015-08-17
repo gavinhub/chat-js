@@ -22,6 +22,8 @@ body, html {overflow: hidden;width: 100%;}
 .chat-peerlist {background: #86C3A3;}
 .messages {display: none;}
 .messages.curr {display: block;}
+.members {display: none}
+.members.curr {display: block;}
 
 .gtag:active, .gtag:hover, .gtag:link, .gtag:visited {color:gray;}
 .curr:active, .curr:hover, .curr:link, .curr:visited {color:blue;}
