@@ -39,11 +39,28 @@ var DBHandler = function () {
     }
 
     this.user_join_grp = function (user, grp) {
+        if (!(user && grp)) {
+            console.Error("Join grp error:", "Empty user or grp");
+            return;
+        }
         var query = "INSERT INTO `membership` VALUES(?, ?)";
         console.log(query, [user, grp]);
         this.db.run(query, [user, grp], function (err) {
             if (err)
                 console.Error("Join grp error:", err);
+        })
+    }
+
+    this.user_leave_grp = function (user, grp) {
+        if (!(user && grp)) {
+            console.Error("Leave grp error:", "Empty user or grp");
+            return;
+        }
+        var query = "DELETE FROM `membership` WHERE `user` = (?) AND grp = (?)";
+        console.log(query, [user, grp]);
+        this.db.run(query, [user, grp], function (err) {
+            if (err)
+                console.Error("Leave grp error:", err);
         })
     }
 

@@ -18,17 +18,29 @@
     <div class="container-fluid">
         <div class="row main">
             <div class="col-sm-3 col-xs-10 chat-group xs-hide">
-                <form action="" id="joingrp-form">
-                    <input type="text" id="join-grp" autocomplete="off" />
-                    <button>Join</button>
+                <form action="" id="joingrp-form" class="form-inline">
+                    <input type="text" id="join-grp" class="form-control" autocomplete="off" /><button class='btn btn-primary'>Join</button>
                 </form>
-                <ul id="groups"></ul>
+                <ul id="groups" class="list-group">
+                </ul>
             </div>
             <div class="col-sm-6 col-xs-12 chat-main">
+                <div class="placeholder">
+                    <p>Please choose a group from the list on the left</p>
+                </div>
                 <ul class="messages"></ul>
                 <form id='form' action="">
                   <div class="inputL">
-                    <label for="m" id="username"><%= username %></label>
+                    <div class="palette">
+<% 
+var color = ['#b00000',"#AABF03","#752AEC","#1A058A","#212121","#DE9004","#317B21"]
+var bgc = ['#F9D3D3',"#E8F9D3","#CDA0FD","#D6D5D8","#EBEAEC","#F5E8CE","#D6FBD8"] 
+for (var i = 0; i < 7; i ++) { %>
+                <div class="colorbox" data-color="<%= color[i] %>" data-bgc="<%= bgc[i] %>" style="background-color:<%= color[i] %>"></div>
+<% } %>
+
+                    </div>
+                    <label for="m" id="username" data-color="#3c3c3c"><%= username %></label>
                     <div>
                       <input data-group="man" id="m" autocomplete="off" />      
                     </div>
@@ -37,12 +49,22 @@
                 </form>
             </div>
             <div class="col-sm-3 col-xs-10 chat-peerlist xs-hide">
+                <a href="/logout" class="btn btn-danger">Logout</a>
             </div>
         </div>
     </div>
 <script src="/js/socket.io.js"></script>
 <script>
 $(function () {
+    /* helper */
+    function myname() {
+        return $("#username").text();
+    }
+
+    function mycolor() {
+        return $("#username").attr("data-color")
+    }
+    
     function resize () {
         // content height
         var main_height = $(window).height() - $(".header").height();
@@ -65,9 +87,25 @@ $(function () {
     /* toggle side bar */
     $(".licon").click(function () {
         $(".chat-group").toggleClass('show')
+        $(".chat-peerlist").removeClass('show')
     })
     $(".ricon").click(function () {
         $(".chat-peerlist").toggleClass('show')
+        $(".chat-group").removeClass('show')
+    })
+
+    /* Choose Color */
+    $("#username").click(function(){
+        $(".palette").toggle();
+    })
+
+    $(".colorbox").click(function() {
+        var color = $(this).attr("data-color"); 
+        $("#username").attr("data-color", color).css("color",color);
+        $("#form").css("background-color",$(this).attr("data-bgc"));
+        $(".palette").css("background-color",$(this).attr("data-bgc"));
+        $(".palette").hide();
+        $("#m")[0].focus();
     })
 
 
@@ -77,9 +115,9 @@ $(function () {
     var socket = io();
     $('#form').submit(function(){
         var msg = {
-          'username': $('#username').text(),
+          'username': myname(),
           'text': $('#m').val(),
-          'color': '#2c9',
+          'color': mycolor(),
           'room': $('#m').attr('data-group')
         }
         socket.emit('chat message', msg);
@@ -89,7 +127,7 @@ $(function () {
 
     $("#joingrp-form").submit(function(){
         var msg = {
-            'username': $("#username").text(),
+            'username': myname(),
             'command': 'join',
             'room': $("#join-grp").val(),
             'token': 'nomal'
@@ -100,28 +138,40 @@ $(function () {
     });
 
     socket.on('chat message', function (msg){
-        var mstr = "<span style='color:"+msg.color+"' data-talkid='"+msg.talkid+"'>["+msg.username+"] "+msg.text+"</span>"
+        var mstr = "<span style='color:"+msg.color+"' data-talkid='"+msg.talkid+"'>[ "+msg.username+" ] "+msg.text+"</span>"
         $('#cwin-'+msg.room).append($('<li>').html(mstr)).stop(true,true).animate({scrollTop: $('#cwin-'+msg.room)[0].scrollHeight}, 100);
+        if(!$('#glist-'+msg.room).hasClass('curr')) {
+            var obadge = $("#glistbadge-"+msg.room).text()
+            var onumber = obadge ? Number(obadge) : 0;
+            $("#glistbadge-"+msg.room).text(onumber+1);
+        }
     });
 
     socket.on('success', function (msg) {
         var action = msg.act;
         if (action == 'JOIN') {
             var gname = "#glist-" + msg.room;
-            $("#groups").append("<li><a href='javascript:void(0)' class='gtag' id='glist-"+msg.room+"'>"+msg.room+"</a><a id='gleave-"+msg.room+"' href='javascript:void(0)'>Leave</a></li>")
+            $("#groups").append("<a href='javascript:void(0)' class='gtag list-group-item' id='glist-"+msg.room+"'>"+msg.room+"<span class='badge' id='glistbadge-"+msg.room+"'></span></a>")
+
+            $(".chat-main").append("<ul class='messages' data-load='none' id='cwin-"+msg.room+"'></ul>")
+            $(".chat-peerlist").prepend("<ul class='members list-group' data-load='none' id='pwin-"+msg.room+"'><li class='pwinheader list-group-item'>User list</li><a href='javascript:void(0)' class='leave-btn list-group-item' id='gleave-"+msg.room+"'>Leave Room</a></ul>")
             $("#gleave-"+msg.room).click(function(){
                 var leavemessage = {
-                    'username': $("#username").text(),
+                    'username': myname(),
                     'command': 'leave',
                     'room': msg.room
                 }
                 socket.emit('grp command', leavemessage);
+                $(".chat-peerlist").toggleClass('show');
+                $(".header>p").text("CHATROOM");
+                $(".placeholder").show(); 
             })
-
-            $(".chat-main").append("<ul class='messages' data-load='none' id='cwin-"+msg.room+"'></ul>")
-            $(".chat-peerlist").append("<ul class='members' data-load='none' id='pwin-"+msg.room+"'></ul>")
             $(gname).click(function(){
+                $(".chat-group").removeClass('show');
+                $(".placeholder").hide(); 
+                $(".header>p").text(msg.room);
                 $(".gtag").removeClass('curr');
+                $("#glistbadge-"+msg.room).text("");
                 $(this).addClass('curr');
                 $('#m').attr('data-group', msg.room);
                 $(".messages").removeClass('curr');
@@ -136,7 +186,7 @@ $(function () {
                     }, function (data) {
                         var talkwin = $("#cwin-"+msg.room);
                         for (var i = 0; i < data.length; i ++) {
-                            var mstr = "<span style='color:"+data[i].color+"' data-talkid='"+data[i].id+"'>["+data[i].user+"] "+data[i].text+"</span>"
+                            var mstr = "<span style='color:"+data[i].color+"' data-talkid='"+data[i].id+"'>[ "+data[i].user+" ] "+data[i].text+"</span>"
                             $(talkwin).prepend($("<li>").html(mstr));   
                         }
                         $(talkwin).attr('data-load', 'loaded')
@@ -148,7 +198,7 @@ $(function () {
                         grp: msg.room
                     }, function (data) {
                         for (var i = 0; i < data.length; i ++) {
-                            $("#pwin-"+msg.room).append("<li id='mem-"+msg.room+"-"+data[i]+"'>"+data[i]+"</li>")
+                            $("#pwin-"+msg.room+" .pwinheader").after("<li class='list-group-item' id='mem-"+msg.room+"-"+data[i]+"'>"+data[i]+"</li>")
                         }
                         $("#pwin-"+msg.room).attr('data-load', 'loaded')
                     })
@@ -156,7 +206,7 @@ $(function () {
             })
             resize();
         } else if (action == 'LEAVE') {
-            $("#glist-"+msg.room).parent("#groups li").remove();
+            $("#glist-"+msg.room).remove();
             $("#cwin-"+msg.room).remove();
             $("#pwin-"+msg.room).remove();
         }
@@ -168,7 +218,8 @@ $(function () {
             $("#mem-"+msg.room+"-"+msg.user).remove();
         } else if (msg.act == "JOIN") {
             $("#cwin-"+msg.room).append($("<li>").html("User '" + msg.user + "' comes here"))
-            $("#pwin-"+msg.room).append($("<li id='mem-"+msg.room+"-"+msg.user+"'>").html(msg.user))
+            if(msg.user != myname())
+                $("#pwin-"+msg.room+" .pwinheader").after($("<li class='list-group-item' id='mem-"+msg.room+"-"+msg.user+"'>").text(msg.user))
         }
     })
 

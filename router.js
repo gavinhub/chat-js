@@ -35,12 +35,16 @@ router.post('/log', function(req, res) {
                 dbh.add_user(req.body.username)
             }
         });
-        res.cookie('username', req.body.username, {maxAge: 200000})
+        res.cookie('username', req.body.username, {maxAge: 20000000})
         res.redirect('/chat');  
     }
     else 
 		res.redirect('/');
+})
 
+router.get('/logout', function(req, res) {
+    res.clearCookie('username'); 
+    res.redirect('/login.html');
 })
 
 module.exports = router;

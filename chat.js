@@ -29,16 +29,18 @@ var Chatroom = {
 				}
 				switch (cmd) {
 					case 'join': 
-					dbh.user_join_grp(msg.username, msg.room)
 					socket.join(msg.room);
 					sucmsg.act = "JOIN";
 					socket.emit('success', sucmsg);
-					if (msg.token != 'init')
+					if (msg.token != 'init') {
+						dbh.user_join_grp(msg.username, msg.room)
 						io.to(msg.room).emit('user info', {user:msg.username, act:'JOIN', room:msg.room})
+					}
 					break;
 
 					case 'leave':
 					socket.leave(msg.room);
+					dbh.user_leave_grp(msg.username, msg.room)
 					sucmsg.act = "LEAVE";
 					socket.emit('success', sucmsg);
 					io.to(msg.room).emit('user info', {user:msg.username, act:'LEAVE', room:msg.room})

@@ -3,11 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <title>Log In</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/index.css">
 </head>
 <body>
-    <form action="/log" method='post'>
-        <input type="text" name='username'>
-        <input type="submit">
-    </form>
+    <div class="background"></div>
+    <div class="container">
+        <h1>MiniChat</h1>
+        <h2>Chat Freely</h2>
+        <form action="/log" class="form-inline" method='post'>
+            <div class="form-group">
+                <input class="form-control" type="text" name='username' placeholder="Any name">
+                <button class="form-control btn btn-" type="submit">Login</button>
+            </div>
+            
+        </form>
+    </div>
+    
 </body>
 </html>
