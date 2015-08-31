@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>MiniChat | FSE</title>
+    <title>MinChat | FSE</title>
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/chat.css">
     <script src="/js/jquery-1.11.js"></script>
@@ -19,14 +19,14 @@
         <div class="row main">
             <div class="col-sm-3 col-xs-10 chat-group xs-hide">
                 <form action="" id="joingrp-form" class="form-inline">
-                    <input type="text" id="join-grp" class="form-control" autocomplete="off" /><button class='btn btn-primary'>Join</button>
+                    <input type="text" id="join-grp" class="form-control" autocomplete="off" /><button disabled="disabled" class='btn btn-primary'>Join</button>
                 </form>
                 <ul id="groups" class="list-group">
                 </ul>
             </div>
             <div class="col-sm-6 col-xs-12 chat-main">
                 <div class="placeholder">
-                    <p>Please choose a group from the list on the left</p>
+                    <p>Please choose a chat room from the list on the left</p>
                 </div>
                 <ul class="messages"></ul>
                 <form id='form' action="">
@@ -38,14 +38,14 @@ var bgc = ['#F9D3D3',"#E8F9D3","#CDA0FD","#D6D5D8","#EBEAEC","#F5E8CE","#D6FBD8"
 for (var i = 0; i < 7; i ++) { %>
                 <div class="colorbox" data-color="<%= color[i] %>" data-bgc="<%= bgc[i] %>" style="background-color:<%= color[i] %>"></div>
 <% } %>
-
+                    <div class="colorbox none">x</div>
                     </div>
                     <label for="m" id="username" data-color="#3c3c3c"><%= username %></label>
                     <div>
                       <input data-group="man" id="m" autocomplete="off" />      
                     </div>
                   </div>
-                  <button>Send</button>
+                  <button disabled="disabled">Send</button>
                 </form>
             </div>
             <div class="col-sm-3 col-xs-10 chat-peerlist xs-hide">
@@ -64,6 +64,15 @@ $(function () {
     function mycolor() {
         return $("#username").attr("data-color")
     }
+
+    function enable (selector) {
+        $(selector).removeAttr("disabled");
+    }
+
+    function disable (selector) {
+        $(selector).attr("disabled", "disabled");
+    }
+
     
     function resize () {
         // content height
@@ -108,12 +117,22 @@ $(function () {
         $("#m")[0].focus();
     })
 
+    /* check group adding */
+    $("#join-grp").keyup(function () {
+        if($(this).val() != "")
+            enable("#joingrp-form .btn")
+        else
+            disable("#joingrp-form .btn")
+    })
+
 
     /*
      * Socket packge - manage socket io.
      */
     var socket = io();
     $('#form').submit(function(){
+        if ($("#m").val() == "")
+            return false;
         var msg = {
           'username': myname(),
           'text': $('#m').val(),
@@ -165,6 +184,7 @@ $(function () {
                 $(".chat-peerlist").toggleClass('show');
                 $(".header>p").text("CHATROOM");
                 $(".placeholder").show(); 
+                disable("#form button")
             })
             $(gname).click(function(){
                 $(".chat-group").removeClass('show');
@@ -178,6 +198,7 @@ $(function () {
                 $("#cwin-"+msg.room).addClass('curr');
                 $(".members").removeClass('curr');
                 $("#pwin-"+msg.room).addClass('curr');
+                enable("#form button");
                 if ($("#cwin-"+msg.room).attr('data-load') == 'none') {
                     $.getJSON("/api/talk", {
                         grp: msg.room,

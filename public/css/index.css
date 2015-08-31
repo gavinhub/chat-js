@@ -29,3 +29,7 @@
   font-family: "Times New Roman"
 }
 
+input.form-control {border: 1px solid transparent;}
+
+footer{text-align: center;position: fixed;left:40px;bottom:50px;  }
+
