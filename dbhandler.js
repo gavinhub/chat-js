@@ -103,7 +103,7 @@ var DBHandler = function () {
         var startlimit = "AND id < ?"
         if (cursor == 0)
             startlimit = "AND id != ?"
-        var query = "SELECT * FROM `talk` WHERE grp = ? "+startlimit+" ORDER BY id DESC LIMIT ?";
+        var query = "SELECT * FROM `talk` WHERE grp = ? "+startlimit+" ORDER BY id LIMIT ?";
         console.log("Get talk query:",query)
         this.db.all(query, grp, cursor, number, function (err, rows) {
             if (err)

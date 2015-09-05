@@ -2,7 +2,7 @@
 body, html {overflow: hidden;width: 100%;position: relative;}
 .main{overflow: hidden;}
 
-#form { background: #EBEAEC; padding: 3px; position: absolute; bottom: 0; width: 100%; padding: 1px; border-top: 1px solid #ccc;}
+#form { background: #EBEAEC; position: absolute; bottom: 0; width: 100%; margin: 1px; border-top: 1px solid #ccc;}
 #form .inputL{width:90%;float: left;}
 #username {color:#212121; font-weight: bold;cursor:pointer; float:left;font-size: 20px;margin:0 15px;line-height: 50px;}
 .inputL div{overflow: hidden}
@@ -10,8 +10,7 @@ body, html {overflow: hidden;width: 100%;position: relative;}
 #form button {background: #337AB7;color:#FEFEFF; width: 10%;height: 50px;border:none;}
 #form button:disabled{background:#6F9AC2;cursor:not-allowed;}
 .messages { list-style-type: none; margin: 0; padding: 0; border:none;overflow-y: scroll;}
-.messages li { padding: 5px 10px; }
-.messages li:nth-child(odd) { background: #eee; }
+.messages li { padding: 5px 10px;background-color: #F6F9FB;margin: 3px 3px;}
 
 .header {text-align: center;background-color: #b00000;height: 47px; font-size: 40px; line-height: 47px;}
 .header p {padding: 0; margin: 0; color:#FDFDFD; font-family: "Times New Roman", Times;}
@@ -61,6 +60,12 @@ a.leave-btn:hover {color:red;}
     padding: 80px 50px;
     cursor:w-resize;
 }
+
+.msg-head{position: relative;}
+.msg-name{font-size: 18px;}
+.msg-time{font-size: 14px;right:12px;position: absolute;color:#c0c0c0;}
+.msg-body{padding-left: 10px}
+.center {text-align: center;color:#c0c0c0;}
 
 /* Mobile Phone */
 @media (max-width: 767px) {

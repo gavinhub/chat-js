@@ -73,6 +73,23 @@ $(function () {
         $(selector).attr("disabled", "disabled");
     }
 
+    function td (str) {
+        if (String(str).length < 2)
+            return '0' + str
+        else
+            return str
+    }
+
+    function add_talk (chatroom, username, color, time, content) {
+        var timestr = ""
+        var d = new Date(time*1000)
+        timestr += td(d.getMonth()+1) + "/" + td(d.getDate()) + "/" + d.getFullYear() + " " + 
+                td(d.getHours()) + ":" + td(d.getMinutes()) + ":" + td(d.getSeconds())
+        var talkwin = $("#cwin-"+chatroom);
+        var mstr = "<div class='msg-head'><span style='color:"+color+"' class='msg-name'>"+username+"</span><span class='msg-time'>"+timestr+"</span></div><span style='color:"+color+"' class='msg-body'>"+content+"</span>";
+        $(talkwin).append($("<li>").html(mstr)); 
+    }
+
     
     function resize () {
         // content height
@@ -157,8 +174,9 @@ $(function () {
     });
 
     socket.on('chat message', function (msg){
-        var mstr = "<span style='color:"+msg.color+"' data-talkid='"+msg.talkid+"'>[ "+msg.username+" ] "+msg.text+"</span>"
-        $('#cwin-'+msg.room).append($('<li>').html(mstr)).stop(true,true).animate({scrollTop: $('#cwin-'+msg.room)[0].scrollHeight}, 100);
+        // chatroom, username, color, time, content
+        add_talk(msg.room, msg.username, msg.color, msg.time, msg.text);
+
         if(!$('#glist-'+msg.room).hasClass('curr')) {
             var obadge = $("#glistbadge-"+msg.room).text()
             var onumber = obadge ? Number(obadge) : 0;
@@ -207,8 +225,8 @@ $(function () {
                     }, function (data) {
                         var talkwin = $("#cwin-"+msg.room);
                         for (var i = 0; i < data.length; i ++) {
-                            var mstr = "<span style='color:"+data[i].color+"' data-talkid='"+data[i].id+"'>[ "+data[i].user+" ] "+data[i].text+"</span>"
-                            $(talkwin).prepend($("<li>").html(mstr));   
+                            // chatroom, username, color, time, content
+                            add_talk(msg.room, data[i].user, data[i].color, data[i].time, data[i].text) 
                         }
                         $(talkwin).attr('data-load', 'loaded')
                         $(talkwin).scrollTop($(talkwin)[0].scrollHeight)
@@ -235,10 +253,10 @@ $(function () {
 
     socket.on('user info', function (msg) {
         if (msg.act == 'LEAVE') {
-            $("#cwin-"+msg.room).append($("<li>").html("User '" + msg.user + "' leaves room"))
+            $("#cwin-"+msg.room).append($("<li class='center'>").html("User [" + msg.user + "] leaves room"))
             $("#mem-"+msg.room+"-"+msg.user).remove();
         } else if (msg.act == "JOIN") {
-            $("#cwin-"+msg.room).append($("<li>").html("User '" + msg.user + "' comes here"))
+            $("#cwin-"+msg.room).append($("<li class='center'>").html("User [" + msg.user + "] comes here"))
             if(msg.user != myname())
                 $("#pwin-"+msg.room+" .pwinheader").after($("<li class='list-group-item' id='mem-"+msg.room+"-"+msg.user+"'>").text(msg.user))
         }
