@@ -21,9 +21,9 @@ body, html {overflow: hidden;width: 100%;position: relative;}
 
 #groups {margin-top: 15px}
 
-.chat-group {background: #DCD5D7}
+.chat-group {background: url(/img/bg2.jpg);}
 .chat-main {padding: 0;}
-.chat-peerlist {background: #DCD5D7;}
+.chat-peerlist {background: url(/img/bg1.jpg);}
 .messages {display: none;}
 .messages.curr {display: block;}
 .members {display: none}

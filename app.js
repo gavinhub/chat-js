@@ -27,6 +27,8 @@ app.use('/api', api);
 // socket io
 var chat = require('./chat').Chat(app)
 
-chat.listen(3000, function() {
-  console.log('Chatroom app listening at 3000');
+var port = process.argv.length > 2 ? Number(process.argv[2]) : 3000;
+console.log(port)
+chat.listen(port, function() {
+  console.log('Chatroom app listening at', port);
 });
