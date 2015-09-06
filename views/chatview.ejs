@@ -176,7 +176,8 @@ $(function () {
     socket.on('chat message', function (msg){
         // chatroom, username, color, time, content
         add_talk(msg.room, msg.username, msg.color, msg.time, msg.text);
-
+        var talkwin = $("#cwin-"+msg.room)
+        $(talkwin).scrollTop($(talkwin)[0].scrollHeight)
         if(!$('#glist-'+msg.room).hasClass('curr')) {
             var obadge = $("#glistbadge-"+msg.room).text()
             var onumber = obadge ? Number(obadge) : 0;
@@ -270,13 +271,22 @@ $(function () {
      * initialize
      */
     $.getJSON('/api/grplist', {user:$("#username").text()}, function (data) {
-        for (var i = 0; i < data.list.length; i ++) {
+        if (data.list.length == 0) {
             socket.emit('grp command', {
-                username: $("#username").text(),
-                command: 'join',
-                room: data.list[i],
-                token: 'init'
-            })
+                    username: $("#username").text(),
+                    command: 'join',
+                    room: 'all'
+                })
+        }
+        else {
+            for (var i = 0; i < data.list.length; i ++) {
+                socket.emit('grp command', {
+                    username: $("#username").text(),
+                    command: 'join',
+                    room: data.list[i],
+                    token: 'init'
+                })
+            }
         }
     })
 })

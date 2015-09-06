@@ -32,7 +32,7 @@ router.post('/log', function(req, res) {
         var dbh = require('./dbhandler')();
         dbh.is_user_new(req.body.username, function (isnew) {
             if (isnew) {
-                dbh.add_user(req.body.username)
+                // dbh.add_user(req.body.username)
             }
         });
         res.cookie('username', req.body.username, {maxAge: 20000000})
