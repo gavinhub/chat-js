@@ -9,7 +9,8 @@ A chat room application
 ## Deployment
 - install node.js
 - clone project
-- run `initdb.js`
+- run `initdb.js` to initialize database
+- run `app.js`
 
 ## Techs
-- Node.js, Express, Socket.io, Bootstrap, JQuery, etc.
+Node.js, Express, Socket.io, Bootstrap, JQuery, etc.
